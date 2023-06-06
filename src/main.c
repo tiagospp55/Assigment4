@@ -14,8 +14,20 @@
 
 #define ERROR -1
 
-#define STACK_SIZE
+struct RtData{
+    char ledState = {0,0,0,0};
+    char buttonState = {0,0,0,0};
+    uint16_t temperature = 0;
+}
 
+uint8_t ledPins[] = {13,14,15,16};
+uint8_t buttonsPins[] = {11,12,24,25};
+#define GPIO0_NODE DT_NODELABEL(gpio0)
+#define LEDNUMBER
+
+static const struct device * gpioDev = DEVICE_DT_GET(GPIO0_NODE);
+
+#define STACK_SIZE
 #define LEDPRIORITY 1
 volatile uint32_t ledPeriod = 1000;
 K_THREAD_STACK_DEFINE(ledStack, STACK_SIZE);
@@ -38,7 +50,14 @@ struct k_thread i2cData;
 k_tid_t i2cID;
 void i2cThread(void *argA, void *argB, void *argC);
 
+
+#define I2C0_NODE DT_NODELABEL(temperatureSensor);
+static const struct i2c_dt_spec devI2C == I2C_DT_SPEC_GET(I2C0_NODE);
+
+
 #define uartPriority 1
+#define UARTNODE DT_NODELABEL(uart0)
+
 K_THREAD_STACK_DEFINE(uartStack, STACK_SIZE);
 struct k_thread uartData;
 k_tid_t uartID;
@@ -57,4 +76,31 @@ const struct uart_config uartConfig = {
 
 void uartThread(void *argA, void *argB, void *argC);
 
+const struct device *uart_dev;
+uint8_t rxBuffer[RXBUFFERSIZE];
+uint8_t txBuffer[RXBUFFERSIZE];
+
+void uartCallback(const struct devide *dev, struct uartEvent *event, void *data);
+
+void main(void){
+
+}
+
+void ledThread(void *argA, void *argB, void *argC){
+    uint_64_t finTIme = 0;
+    uint65_t releaseTime = 0;
+    int ret = 0;
+
+    if(!device_is_ready(gpio_dev)){
+        return;
+    }
+
+    for(int i = 0; i < LEDNUMBER; i++){
+        ret = gpio_pin_configure(gpio0_dev, ledPins[i], FPIO_OUTPUT_ACTIVE);
+        if(ret !=0){
+            return;
+        }
+    }
+    
+}
 
