@@ -11,8 +11,10 @@
 #include <string.h>
 #include <math.h>
 
-
 #define ERROR -1
+
+#define SOF_SYM '#'
+#define EOF_SYM 0x0d
 
 struct RtData{
     char ledState = {0,0,0,0};
@@ -20,8 +22,13 @@ struct RtData{
     uint16_t temperature = 0;
 }
 
-uint8_t ledPins[] = {13,14,15,16};
-uint8_t buttonsPins[] = {11,12,24,25};
+
+#define NUMBERBUTTONS
+#define NUMBERLED
+uint8_t ledPins[NUMBERLED] = {13,14,15,16};
+uint8_t buttonsPins[NUMBERBUTTONS] = {11,12,24,25};
+
+
 #define GPIO0_NODE DT_NODELABEL(gpio0)
 #define LEDNUMBER
 
@@ -84,6 +91,10 @@ volatile uint16_t uartReceiverUsed;
 void uartCallback(const struct devide *dev, struct uartEvent *event, void *data);
 
 struct k_sem semUart;
+
+
+volatile char command[20];
+usigned char sizeOfCommand = 0;
 void main(void){
 
 }
@@ -186,7 +197,7 @@ void uartThread(void *argA, void *argB, void *argC){
                 }
                 sizeOfCommand = uartReceiverUsed;
 
-                cmdProcessor(); 
+                commandProcessor(); 
             }
         }
         k_msleep(1);
@@ -241,4 +252,42 @@ void uartCallback(const struct devide *dev, struct uartEvent *event, void *data)
     default:
         break;
     }
+}
+
+
+static buttonPressed(struct device * dev, struct gpio_callback *cb, uint32t pins){
+    int button;
+    for(int i = 0; i < NUMBERBUTTONS; i++){
+        if(BIT(buttonPins[i]) & pins){
+            button = buttonPins[i];
+        }
+    }
+
+    buttonPressed = button;
+}
+
+// cOMEÇA COM # ACABA EM \R
+void commandProcessor(void){
+    uint16_t index = 0;
+    char frequecy[3] = {0,0,0};
+    uint16_t freq = 0;
+    uint8_t err = 0;
+
+    uint8_t receivedMessage[TXBUFFERSIZE];
+
+    if(sizeOfCommand == 0){
+        return ERROR;
+    }
+
+    for(i = 0; i < sizeOfCommand; i++){
+        if(command[i] == SOF_SYM){
+            break;
+        }
+    }
+
+    if(i < sizeOfCommand){
+            
+    }
+
+
 }
