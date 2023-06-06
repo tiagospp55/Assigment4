@@ -87,7 +87,7 @@ void main(void){
 }
 
 void ledThread(void *argA, void *argB, void *argC){
-    uint_64_t finTIme = 0;
+    uint_64_t finTime = 0;
     uint65_t releaseTime = 0;
     int ret = 0;
 
@@ -101,6 +101,62 @@ void ledThread(void *argA, void *argB, void *argC){
             return;
         }
     }
-    
+
+    releaseTime = k_uptime_get() + ledPeriod;
+
+    while(1){
+        for(int i = 0; i < LEDNUMBER; i++){
+            gpio_pin_set(gpioDev, ledPins[i], !RtData.ledState[i]);
+        }
+
+        finTime = k_uptime_get();
+        if(finTIme < releaseTime){
+            k_msleep(releaseTIme - finTIme);
+            releaseTime = releaseTime + ledPeriod;
+        }
+    }
+
+    timing_stop();
 }
+
+void i2cThread(void *argA, void *argB, void *argC){
+    uint64_t finTime = 0; 
+    uint64_t releaseTime = 0;
+    int ret = 0;
+
+    if(!device_is_ready(dev_i2c.bus)){
+        return; 
+    }
+
+    uint8_t inputSensor;
+
+    uint8_t configurations = 0x00;
+    ret = i2c_write_dt(&dev_i2c, &configurations, sizeof(configurations));
+    
+    if(ret !=0){
+        return;
+    }
+
+    releaseTIme = k_uptime_get() + ic2Period;
+
+    while(1){
+        ret = i2c_read_dt(&dev_i2c, &inputSensor, sizeof(inputSensor));
+        if(ret < 0){
+            return;
+        }
+
+        RtData.temperature = inputSensor;
+
+        finTime = k_uptime_get();
+
+        if(finTime < releaseTime){
+            k_msleep(releaseTIme - finTime);
+            releaseTime = releaseTime + ic2Period;
+        }
+    }
+
+    timing_stop();
+}
+
+
 
